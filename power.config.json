@@ -1,0 +1,43 @@
+{
+  "appId": "835ca7e1-b748-46e4-bb0d-648a3a843b62",
+  "appDisplayName": "Sprint Retrospective App",
+  "description": null,
+  "environmentId": "bbf040e7-55e7-e321-b6f9-23eb447c2606",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "logoPath": "Default",
+  "localAppUrl": "http://localhost:3000/",
+  "region": "prod",
+  "connectionReferences": {
+    "46f37575-7525-45a9-a843-264719e90af6": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+      "displayName": "SharePoint",
+      "dataSources": [
+        "retrosessions",
+        "retroitems",
+        "actionitems",
+        "userroles"
+      ],
+      "dataSets": {
+        "https://epmpoint.sharepoint.com/sites/EPMPointInnovationLab": {
+          "dataSources": {
+            "retrosessions": {
+              "tableName": "RetroSessions"
+            },
+            "retroitems": {
+              "tableName": "RetroItems"
+            },
+            "actionitems": {
+              "tableName": "ActionItems"
+            },
+            "userroles": {
+              "tableName": "UserRoles"
+            }
+          }
+        }
+      }
+    }
+  },
+  "databaseReferences": {},
+  "version": "1.0"
+}
