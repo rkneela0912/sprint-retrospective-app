@@ -2,6 +2,8 @@
 
 A Power Apps Code App for running structured agile sprint retrospectives. Built with React + TypeScript and backed by SharePoint Online, this app enables teams to collaboratively reflect on each sprint using a four-column retrospective board — all within the Microsoft Power Apps ecosystem.
 
+📖 **[Read the blog article](https://rkneela0912.github.io/sprint-retrospective-app/)** — full architecture walkthrough, technical decisions, and deployment guide.
+
 ---
 
 ## Features
