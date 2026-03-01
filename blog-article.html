@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building a Sprint Retrospective App on Power Apps Code Apps</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 1rem;
+      line-height: 1.75;
+      color: #1a1a2e;
+      background: #f8f9fb;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+      background: #fff;
+      box-shadow: 0 0 40px rgba(0,0,0,.07);
+    }
+
+    /* ── Header / Hero ────────────────────────────────────────────── */
+    .hero {
+      border-left: 5px solid #0078d4;
+      padding: 2rem 2rem 2rem 2rem;
+      background: linear-gradient(135deg, #f0f7ff 0%, #fafcff 100%);
+      border-radius: 0 12px 12px 0;
+      margin-bottom: 2.5rem;
+    }
+    .hero .tag {
+      display: inline-block;
+      background: #0078d4;
+      color: #fff;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: .75rem;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #0d1b2a;
+      margin-bottom: .75rem;
+    }
+    .meta {
+      font-size: .85rem;
+      color: #6b7c93;
+    }
+
+    /* ── Typography ───────────────────────────────────────────────── */
+    h2 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #0d1b2a;
+      margin: 3rem 0 .75rem;
+      padding-bottom: .4rem;
+      border-bottom: 2px solid #e8ecf2;
+    }
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 2rem 0 .5rem;
+    }
+    p { margin-bottom: 1rem; }
+    strong { font-weight: 700; }
+    em { font-style: italic; }
+
+    /* ── Links ────────────────────────────────────────────────────── */
+    a { color: #0078d4; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Blockquote / callout ─────────────────────────────────────── */
+    blockquote {
+      border-left: 4px solid #0078d4;
+      background: #f0f7ff;
+      padding: .9rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+      font-size: .92rem;
+      color: #2c4060;
+    }
+    blockquote p { margin: 0; }
+
+    /* ── Screenshot ───────────────────────────────────────────────── */
+    .screenshot {
+      margin: 1.75rem 0;
+      text-align: center;
+    }
+    .screenshot img {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+      border: 1px solid #dde6f0;
+      display: block;
+      margin: 0 auto;
+    }
+    .screenshot .caption {
+      font-size: .875rem;
+      color: #6b7c93;
+      margin-top: .6rem;
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* ── Tables ───────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: .9rem;
+    }
+    th {
+      background: #0078d4;
+      color: #fff;
+      font-weight: 600;
+      padding: .6rem 1rem;
+      text-align: left;
+    }
+    td {
+      padding: .55rem 1rem;
+      border-bottom: 1px solid #e8ecf2;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f8fbff; }
+    .center { text-align: center; }
+
+    /* ── Code ─────────────────────────────────────────────────────── */
+    pre {
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 1.25rem 1.5rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin: 1.25rem 0;
+      font-size: .82rem;
+      line-height: 1.6;
+    }
+    code {
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+    }
+    p code, li code {
+      background: #eef2ff;
+      color: #3730a3;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: .88em;
+    }
+
+    /* ── Lists ────────────────────────────────────────────────────── */
+    ul, ol {
+      margin: .75rem 0 1rem 1.5rem;
+    }
+    li { margin-bottom: .35rem; }
+
+    /* ── Horizontal rule ──────────────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid #e8ecf2;
+      margin: 3rem 0;
+    }
+
+    /* ── Session lifecycle diagram ────────────────────────────────── */
+    .lifecycle {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin: 1.25rem 0;
+    }
+    .lifecycle .state {
+      background: #fff;
+      border: 2px solid #0078d4;
+      color: #0078d4;
+      font-weight: 700;
+      font-size: .85rem;
+      padding: .4rem 1rem;
+      border-radius: 20px;
+    }
+    .lifecycle .arrow { color: #0078d4; font-size: 1.3rem; }
+
+    /* ── CTA Box ──────────────────────────────────────────────────── */
+    .cta-box {
+      background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 14px;
+      margin-top: 3rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      border: none;
+      color: #fff;
+      margin-top: 0;
+      font-size: 1.4rem;
+    }
+    .cta-box p { color: rgba(255,255,255,.9); margin-bottom: .5rem; }
+    .cta-box .cta-placeholder {
+      display: inline-block;
+      margin-top: 1rem;
+      background: #fff;
+      color: #0078d4;
+      font-weight: 700;
+      font-size: .9rem;
+      padding: .65rem 1.75rem;
+      border-radius: 8px;
+      border: none;
+      cursor: default;
+      opacity: .9;
+    }
+
+    /* ── Stack badge ──────────────────────────────────────────────── */
+    .stack-footer {
+      margin-top: 3rem;
+      font-size: .78rem;
+      color: #8899aa;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .page { padding: 1.5rem 1rem 4rem; }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── HERO ─────────────────────────────────────────────────────── -->
+  <div class="hero">
+    <div class="tag">Power Platform · React · SharePoint</div>
+    <h1>Building a Sprint Retrospective App on Power Apps Code Apps</h1>
+    <p class="meta">March 2026 &nbsp;·&nbsp; ~12 min read &nbsp;·&nbsp; Architecture · SharePoint · Lessons Learned</p>
+  </div>
+
+  <!-- ── 1. THE PROBLEM ────────────────────────────────────────────── -->
+  <h2>The Problem: Retrospectives Are Broken</h2>
+  <p>
+    Most agile teams know the value of a good sprint retrospective. In theory it is a structured conversation about
+    what went well, what did not, and what needs to change. In practice it often looks like this: someone shares a
+    Miro board or a sticky-note Jam, the team fills it in, someone reads the notes aloud, and action items get
+    written into a chat message that nobody looks at again.
+  </p>
+  <p>Three things consistently go wrong:</p>
+  <ol>
+    <li><strong>Action items fall through the cracks.</strong> There is no formal ownership, no status tracking, and no connection between an action and the feedback that generated it.</li>
+    <li><strong>Psychological safety is fragile.</strong> When feedback is always attributable, team members self-censor. The most important things often go unsaid.</li>
+    <li><strong>There is no continuity between sprints.</strong> Incomplete actions from Sprint 5 quietly disappear when Sprint 6 starts.</li>
+  </ol>
+  <p>
+    The goal of this project was to solve all three inside the Microsoft 365 ecosystem — no new SaaS subscriptions,
+    no external databases, no change-management headaches.
+  </p>
+
+  <!-- ── 2. WHY POWER APPS CODE APPS ───────────────────────────────── -->
+  <h2>Why Power Apps Code Apps?</h2>
+  <p>
+    <strong>Power Apps Code Apps</strong> is a relatively new capability in the Power Platform that lets you build a
+    Power App using a standard web front-end stack — React, TypeScript, Vite — and deploy it as a first-class Power
+    App. You get:
+  </p>
+  <ul>
+    <li>Microsoft Entra (Azure AD) authentication with zero configuration</li>
+    <li>SharePoint Online connectors with auto-generated TypeScript service clients</li>
+    <li>Deployment via a single CLI command (<code>pac code push</code>)</li>
+    <li>The app lives in your Power Apps environment alongside canvas and model-driven apps</li>
+  </ul>
+  <p>
+    The alternative was a standalone Azure Static Web App with its own authentication and SharePoint Graph API
+    integration. That is a valid choice, but it adds infrastructure, a separate identity configuration, and a longer
+    path from "developer laptop" to "available to the team in Teams."
+  </p>
+  <p>
+    For an internal productivity tool used by a single organisation, Power Apps Code Apps is the right trade-off.
+    You get modern web development tooling while staying firmly inside the Microsoft 365 governance boundary.
+  </p>
+
+  <div class="screenshot">
+    <img src="Screenshots/Power%20Apps%20maker%20portal%20showing%20the%20deployed%20Sprint%20Retrospective%20app%20alongside%20canvas%20apps%20in%20the%20same%20environment..png" alt="Power Apps maker portal showing the deployed Sprint Retrospective app alongside canvas apps in the same environment." />
+    <div class="caption">Power Apps maker portal showing the deployed Sprint Retrospective app alongside canvas apps in the same environment.</div>
+  </div>
+
+  <!-- ── 3. WHAT THE APP DOES ───────────────────────────────────────── -->
+  <h2>What the App Does</h2>
+  <p>
+    The app is a four-column retrospective board with a structured session lifecycle.
+  </p>
+
+  <h3>The Four Columns</h3>
+  <table>
+    <tr><th>Column</th><th>Purpose</th></tr>
+    <tr><td>What We Liked</td><td>Celebrate what worked well this sprint</td></tr>
+    <tr><td>What We Missed</td><td>Honest reflection on gaps and problems</td></tr>
+    <tr><td>What We Learned</td><td>Knowledge gained — technical, process, team</td></tr>
+    <tr><td>Appreciations</td><td>Shout-outs and recognition between team members</td></tr>
+  </table>
+  <p>
+    The <em>Appreciations</em> column in particular tends to generate genuine engagement and
+    improve team cohesion over time — something a generic sticky-note board rarely achieves consistently.
+  </p>
+
+  <h3>Session Lifecycle</h3>
+  <p>Every retrospective is a <strong>session</strong> that moves through three states:</p>
+  <div class="lifecycle">
+    <div class="state">Draft</div>
+    <div class="arrow">→</div>
+    <div class="state">Open</div>
+    <div class="arrow">→</div>
+    <div class="state">Closed</div>
+  </div>
+  <ul>
+    <li><strong>Draft</strong> — The Scrum Master creates and configures the session. No submissions accepted yet.</li>
+    <li><strong>Open</strong> — The board is live. Team members can add items, vote, and attach action items to feedback cards.</li>
+    <li><strong>Closed</strong> — The board is read-only. The Scrum Master can run the carry-over process to push incomplete actions into the next sprint.</li>
+  </ul>
+
+  <h3>Role-Based Access</h3>
+  <table>
+    <tr>
+      <th>Action</th>
+      <th class="center">Scrum Master</th>
+      <th class="center">Team Member</th>
+      <th class="center">Viewer</th>
+    </tr>
+    <tr><td>View retro board</td><td class="center">✅</td><td class="center">✅</td><td class="center">✅</td></tr>
+    <tr><td>Create sessions</td><td class="center">✅</td><td class="center">❌</td><td class="center">❌</td></tr>
+    <tr><td>Change session status</td><td class="center">✅</td><td class="center">❌</td><td class="center">❌</td></tr>
+    <tr><td>Add retro items</td><td class="center">✅</td><td class="center">✅</td><td class="center">❌</td></tr>
+    <tr><td>Vote on items</td><td class="center">✅</td><td class="center">✅</td><td class="center">❌</td></tr>
+    <tr><td>Add action items</td><td class="center">✅</td><td class="center">✅</td><td class="center">❌</td></tr>
+    <tr><td>Edit action item status</td><td class="center">✅</td><td class="center">Owner only</td><td class="center">❌</td></tr>
+    <tr><td>Carry over actions</td><td class="center">✅</td><td class="center">❌</td><td class="center">❌</td></tr>
+    <tr><td>See anonymous authors</td><td class="center">✅</td><td class="center">❌</td><td class="center">❌</td></tr>
+  </table>
+
+  <div class="screenshot">
+    <img src="Screenshots/The%20Sprint%20Selector%20view%20showing%20the%20list%20of%20retrospective%20sessions%20with%20their%20status%20badges%20%28Draft%20%20Open%20%20Closed%29..png" alt="The Sprint Selector view showing the list of retrospective sessions with their status badges." />
+    <div class="caption">The Sprint Selector view showing the list of retrospective sessions with their status badges (Draft / Open / Closed).</div>
+  </div>
+
+  <div class="screenshot">
+    <img src="Screenshots/The%20main%20retrospective%20board%20with%20all%20four%20columns%2C%20feedback%20cards%2C%20and%20vote%20counts%20visible.%20Session%20status%20shown%20in%20the%20header..png" alt="The main retrospective board with all four columns, feedback cards, and vote counts visible." />
+    <div class="caption">The main retrospective board with all four columns, feedback cards, and vote counts visible. Session status shown in the header.</div>
+  </div>
+
+  <!-- ── 4. ARCHITECTURE ────────────────────────────────────────────── -->
+  <h2>Architecture</h2>
+
+  <h3>Tech Stack</h3>
+  <table>
+    <tr><th>Layer</th><th>Choice</th><th>Rationale</th></tr>
+    <tr><td>UI Framework</td><td>React 19 + TypeScript</td><td>Standard modern web stack; strong ecosystem</td></tr>
+    <tr><td>Build Tool</td><td>Vite 7</td><td>Fast HMR in dev, optimised production bundle</td></tr>
+    <tr><td>Platform SDK</td><td><code>@microsoft/power-apps</code></td><td>Code Apps runtime context (user identity, connectors)</td></tr>
+    <tr><td>Data Backend</td><td>SharePoint Online</td><td>Already available in every Microsoft 365 tenant</td></tr>
+    <tr><td>Auth</td><td>Power Apps <code>getContext()</code></td><td>Zero-config Entra ID auth</td></tr>
+    <tr><td>Deployment</td><td><code>pac code push</code></td><td>Single command deploy to Power Apps environment</td></tr>
+  </table>
+
+  <h3>The Data Model — Four SharePoint Lists</h3>
+  <p>
+    All data lives in SharePoint Online. No Azure SQL, no Dataverse, no Cosmos DB. This is a deliberate choice for
+    organisations that want simplicity and zero extra licensing cost.
+  </p>
+
+  <p><strong>RetroSessions</strong> — one record per retrospective session</p>
+  <pre><code>Title        | Single line of text  | Session name
+Sprint       | Choice               | Sprint 81, Sprint 82, …
+Status       | Choice               | Draft | Open | Closed
+SessionDate  | Date and Time        |</code></pre>
+
+  <p><strong>RetroItems</strong> — one record per piece of feedback</p>
+  <pre><code>Title        | Single line of text  | The feedback text
+Category     | Choice               | What We Liked | What We Missed | What We Learned | Appreciations
+SessionRef   | Number               | FK → RetroSessions.ID
+SubmittedBy  | Person or Group      |
+Votes        | Number               | Default: 0
+IsAnonymous  | Yes/No               | Default: No</code></pre>
+
+  <p><strong>ActionItems</strong> — one record per action item</p>
+  <pre><code>Title           | Single line of text  | Action description
+Owner           | Person or Group      |
+Status          | Choice               | Open | In Progress | Completed | Carried Over
+TargetSprint    | Choice               | Sprint 81, Sprint 82, …
+RetroItemRef    | Number               | FK → RetroItems.ID
+CarriedOverFrom | Number               | FK → ActionItems.ID (null if original)</code></pre>
+
+  <p><strong>UserRoles</strong> — one record per user</p>
+  <pre><code>Title  | Single line of text  | User's email / UPN
+Role   | Choice               | Scrum Master | Team Member | Viewer</code></pre>
+
+  <div class="screenshot">
+    <img src="Screenshots/The%20four%20SharePoint%20lists%20in%20the%20SharePoint%20site%27s%20list%20view..png" alt="The four SharePoint lists in the SharePoint site's list view." />
+    <div class="caption">The four SharePoint lists in the SharePoint site's list view.</div>
+  </div>
+
+  <!-- ── 5. KEY TECHNICAL DECISIONS ────────────────────────────────── -->
+  <h2>Key Technical Decisions</h2>
+
+  <h3>1. Identity and Role Resolution</h3>
+  <p>
+    Power Apps Code Apps provide a <code>getContext()</code> function from the <code>@microsoft/power-apps</code> SDK.
+    This returns the signed-in user's identity including their <code>userPrincipalName</code> — the UPN used as the
+    key into the <code>UserRoles</code> SharePoint list.
+  </p>
+  <pre><code>// src/components/AuthProvider.tsx
+import { getContext } from '@microsoft/power-apps/lib/app';
+
+const ctx = await getContext();
+const email = ctx?.user?.userPrincipalName?.toLowerCase() ?? "";
+
+const result = await UserRolesService.getAll({
+  filter: `Email eq '${email}' and IsActive eq 1`,
+  top: 1,
+});
+
+const role = result.data[0]?.Role?.Value ?? "Team Member";
+setUserRole(role as UserRole);</code></pre>
+  <p>
+    The <code>AuthProvider</code> component wraps the entire application and exposes a <code>useAuth()</code> hook.
+    Every component that needs to make a permissions decision calls <code>useAuth()</code> and gets
+    <code>{ userEmail, userRole, isLoading }</code> back. There is no global state library — React context is
+    sufficient for a single-user-role value.
+  </p>
+  <blockquote>
+    <p>
+      <strong>Design decision:</strong> Users not in the <code>UserRoles</code> list default to
+      <code>"Team Member"</code> rather than <code>"Viewer"</code> — a permissive default that reduces onboarding
+      friction. Change this fallback in <code>AuthProvider.tsx</code> if you need a restrictive default.
+    </p>
+  </blockquote>
+
+  <h3>2. Anonymous Submissions Without Anonymous Storage</h3>
+  <p>
+    The <code>IsAnonymous</code> flag is stored on the <code>RetroItem</code> record alongside the actual
+    <code>SubmittedBy</code> person field. Anonymity is enforced by the application layer, not the data layer.
+  </p>
+  <p>
+    The practical consequence: the Scrum Master can always see who submitted anonymously (displayed as
+    <code>🔒 Anonymous (user@domain.com)</code> — visible only to them). This provides a safety net against abuse
+    while preserving psychological safety for team members.
+  </p>
+  <pre><code>// src/components/RetroCard.tsx
+const displayName =
+  item.isAnonymous &amp;&amp; userRole !== "Scrum Master"
+    ? "Anonymous"
+    : item.submittedBy;</code></pre>
+
+  <div class="screenshot">
+    <img src="Screenshots/A%20feedback%20card%20showing%20the%20anonymous%20badge%20as%20seen%20by%20a%20Team%20Member%20%28left%29%20vs.%20the%20Scrum%20Master%20view%20showing%20the%20author%20in%20the%20badge%20%28right%29..png" alt="A feedback card showing the anonymous badge as seen by a Team Member vs. the Scrum Master view." />
+    <div class="caption">A feedback card showing the anonymous badge as seen by a Team Member (left) vs. the Scrum Master view showing the author in the badge (right).</div>
+  </div>
+
+  <h3>3. Optimistic Voting</h3>
+  <p>
+    The vote button uses optimistic UI: the local vote count increments immediately before the SharePoint write
+    confirms. If the write fails, the count rolls back.
+  </p>
+  <pre><code>// src/components/RetroCard.tsx
+const handleVote = async () => {
+  if (isVoting || sessionStatus === "Closed") return;
+
+  setIsVoting(true);
+  const nextVotes = localVotes + 1;
+  setLocalVotes(nextVotes); // immediate optimistic update
+
+  try {
+    await voteOnItem(item.id, nextVotes);
+  } catch (err) {
+    setLocalVotes((prev) =&gt; Math.max(prev - 1, 0)); // rollback on failure
+  } finally {
+    setIsVoting(false);
+  }
+};</code></pre>
+  <p>
+    The service call passes the explicit <code>nextVotes</code> value rather than incrementing server-side. This
+    avoids the race condition where two concurrent votes each read <code>Votes: 5</code>, both write
+    <code>Votes: 6</code>, and one vote is silently lost.
+  </p>
+
+  <h3>4. Carry-Over Logic</h3>
+  <p>
+    This is the feature that solves "action items fall through the cracks." When a Scrum Master closes a sprint and
+    opens the next one, they can run the carry-over from the Admin Panel. The logic queries all <code>Open</code> or
+    <code>In Progress</code> action items from the source session and creates new copies in the target session, with
+    a <code>CarriedOverFrom</code> foreign key pointing back to the original.
+  </p>
+  <pre><code>// src/services/SharePointService.ts
+export const carryOverActions = async (
+  fromSessionId: number,
+  toSessionId: number,
+  toSprint: string
+): Promise&lt;void&gt; =&gt; {
+  const result = await ActionItemsService.getAll({
+    filter: `SessionRefID eq ${fromSessionId} and (Status eq 'Open' or Status eq 'In Progress')`,
+  });
+
+  const incompleteActions = (result.data as any[]) ?? [];
+
+  const carryOverPromises = incompleteActions.map((action) =&gt;
+    ActionItemsService.create({
+      Title: action.Title,
+      RetroItemRefID: action.RetroItemRefID,
+      SessionRefID: toSessionId,
+      Owner: action.Owner,
+      Status: { Value: "Carried Over" },
+      TargetSprint: { Value: toSprint },
+      CarriedOverFrom: action.ID,
+    })
+  );
+
+  await Promise.all(carryOverPromises);
+};</code></pre>
+  <p>
+    The <code>Carried Over</code> status is a distinct value — not <code>Open</code> — so teams can immediately see
+    which actions came from a previous sprint. The <code>CarriedOverFrom</code> foreign key provides a full audit
+    trail back to the original feedback item.
+  </p>
+
+  <div class="screenshot">
+    <img src="Screenshots/The%20Admin%20Panel%20slide-out%20%28Scrum%20Master%20only%29%20showing%20the%20session%20status%20controls%20and%20the%20carry-over%20sprint%20selector..png" alt="The Admin Panel slide-out (Scrum Master only) showing the session status controls and the carry-over sprint selector." />
+    <div class="caption">The Admin Panel slide-out (Scrum Master only) showing the session status controls and the carry-over sprint selector.</div>
+  </div>
+
+  <h3>5. SharePoint People Field Resolution</h3>
+  <p>
+    Writing to a SharePoint <em>Person or Group</em> column via the Power Apps connector requires a properly shaped
+    object, not just an email string. The <code>resolvePersonValue</code> helper calls the connector's
+    <code>getReferencedEntity</code> operation to look up the user and returns either an exact UPN match or a
+    <code>Claims</code>-based fallback object.
+  </p>
+  <pre><code>// src/services/SharePointService.ts
+async function resolvePersonValue(search, referencedKey, service) {
+  const res = await service.getReferencedEntity(search, referencedKey);
+  const candidates = extractCandidates(res);
+
+  if (candidates.length &gt; 0) {
+    const exact =
+      candidates.find((c) =&gt; toLower(c?.Email) === needle) ||
+      candidates.find((c) =&gt; toLower(c?.UserPrincipalName) === needle);
+    return exact ?? candidates[0];
+  }
+
+  // Claims fallback — works for most SharePoint connector scenarios
+  return {
+    Claims: `i:0#.f|membership|${needle}`,
+    Email: needle,
+    DisplayName: needle,
+  };
+}</code></pre>
+  <p>
+    This is one of the trickiest parts of the Power Apps Code Apps connector model. The auto-generated service
+    clients handle the HTTP plumbing, but writing <code>Person</code> and <code>Choice</code> fields requires
+    knowing the exact shape the connector expects. The claims fallback is a pragmatic safety net that covers the
+    majority of tenant configurations.
+  </p>
+
+  <!-- ── 6. PROJECT STRUCTURE ───────────────────────────────────────── -->
+  <h2>Project Structure</h2>
+  <pre><code>sprint-retro-app/
+├── src/
+│   ├── components/         # React UI components
+│   │   ├── AuthProvider.tsx        # User identity &amp; role resolution
+│   │   ├── SprintSelectorView.tsx  # Session list / create session
+│   │   ├── RetrospectiveView.tsx   # Main board page
+│   │   ├── RetroBoard.tsx          # Four-column board layout
+│   │   ├── RetroColumn.tsx         # Single category column
+│   │   ├── RetroCard.tsx           # Feedback card with votes &amp; actions
+│   │   ├── ActionItem.tsx          # Action item within a card
+│   │   ├── AddItemForm.tsx         # Form to submit new feedback
+│   │   ├── AdminPanel.tsx          # Scrum Master admin slide-out
+│   │   └── Header.tsx              # Session title &amp; status badge
+│   ├── services/           # Business logic wrapping generated clients
+│   │   ├── SharePointService.ts    # Core data operations
+│   │   ├── RetroItemsService.ts
+│   │   ├── RetroSessionsService.ts
+│   │   ├── ActionItemsService.ts
+│   │   └── UserRolesService.ts
+│   └── generated/          # Auto-generated by pac CLI — do not edit
+├── power.config.json       # Power Apps deployment configuration
+└── vite.config.ts</code></pre>
+  <p>
+    The <code>generated/</code> folder contains service clients produced by the Power Platform CLI when a SharePoint
+    data source is added. These are regenerated whenever the SharePoint schema changes. The <code>services/</code>
+    layer wraps them with typed business operations and normalisation helpers, keeping the UI components clean and
+    testable.
+  </p>
+
+  <!-- ── 7. DEPLOYMENT ─────────────────────────────────────────────── -->
+  <h2>Deployment</h2>
+  <p>
+    Deploying to Power Apps is a three-command workflow once the SharePoint lists exist and the Power Platform CLI
+    is authenticated:
+  </p>
+  <pre><code># Authenticate against your Power Apps environment
+pac auth create --environment &lt;your-environment-id&gt;
+
+# Build the React app
+npm run build
+
+# Push to Power Apps
+pac code push</code></pre>
+  <p>
+    The <code>power.config.json</code> file maps SharePoint connector connection IDs and list URLs to the generated
+    service names. The first-time setup also requires running <code>pac code add-data-source</code> once per
+    SharePoint list to generate the service clients and register the connector.
+  </p>
+
+  <div class="screenshot">
+    <img src="Screenshots/pac-code-push-terminal.png" alt="Terminal output of pac code push showing the successful deployment." />
+    <div class="caption">Terminal output of <code>pac code push</code> showing the successful deployment and the resulting app URL in the Power Apps environment.</div>
+  </div>
+
+  <!-- ── 8. WHAT WE'D DO DIFFERENTLY ───────────────────────────────── -->
+  <h2>What We Would Do Differently</h2>
+
+  <p>
+    <strong>1. Dataverse instead of SharePoint for a production deployment at scale.</strong><br />
+    SharePoint lists work well and have zero extra cost, but Dataverse gives you proper relational integrity,
+    server-side business rules, and better integration with Power Automate and model-driven apps. For a team of
+    10–15 people running weekly retros, SharePoint is fine. For a multi-team deployment across a large organisation,
+    Dataverse is the right foundation.
+  </p>
+
+  <p>
+    <strong>2. Power Automate for notifications.</strong><br />
+    The current app has no notifications. A simple Power Automate flow triggered on an <code>ActionItem</code>
+    status change — "Your action item X was updated to In Progress" — would close the feedback loop without any
+    changes to the React codebase.
+  </p>
+
+  <p>
+    <strong>3. Sprint choices driven by data, not hardcoded constants.</strong><br />
+    Sprint labels (<code>Sprint 81</code>, <code>Sprint 82</code>, …) are currently hardcoded in
+    <code>RetroCard.tsx</code>. They should come from the <code>RetroSessions</code> list or a separate
+    configuration list so the app does not need a code change when the sprint numbering scheme changes.
+  </p>
+
+  <!-- ── 9. CLOSING ────────────────────────────────────────────────── -->
+  <h2>Closing Thoughts</h2>
+  <p>
+    Power Apps Code Apps is still a relatively young capability in the Power Platform, but it already closes a
+    significant gap: you can now bring real software engineering practices — React, TypeScript, component
+    architecture, CI/CD — to Power Apps without sacrificing the zero-friction authentication and connector ecosystem
+    that makes the platform valuable to Microsoft 365 organisations.
+  </p>
+  <p>
+    For this sprint retrospective use case, the combination of Code Apps, SharePoint Online, and a handful of
+    well-designed React components produced a tool that is genuinely useful — anonymous submissions, action tracking
+    with carry-over, role-based permissions — in a way that fits naturally inside the tools a team is already using.
+  </p>
+  <p>
+    The architecture is intentionally simple. It could be made more robust with Dataverse, more observable with
+    Application Insights, and more integrated with Power Automate notifications. But as a starting point for any
+    team that has been frustrated by ad-hoc sticky-note retros, it works — and it can be stood up in an afternoon.
+  </p>
+
+  <hr />
+
+  <!-- ── CTA ────────────────────────────────────────────────────────── -->
+  <div class="cta-box">
+    <h2>Want to Build Something Similar?</h2>
+    <p>
+      If you are exploring Power Apps Code Apps for your own internal tools, or looking for a development partner
+      to build productivity applications on the Microsoft 365 platform, I would love to have a conversation.
+    </p>
+    <p>
+      Whether it is a greenfield build, a migration from a canvas app, or an architecture review — reach out.
+    </p>
+    <div class="cta-placeholder">
+      <strong>Ranjith Neela</strong><br/>
+      <a href="mailto:iamranjithneela@gmail.com" style="color:#0078d4;text-decoration:none;">iamranjithneela@gmail.com</a>
+      &nbsp;·&nbsp;
+      <a href="https://www.ranjithneela.com" target="_blank" style="color:#0078d4;text-decoration:none;">www.ranjithneela.com</a>
+    </div>
+  </div>
+
+  <p class="stack-footer">
+    Built with React 19 · TypeScript · Vite 7 · Power Apps Code Apps SDK · SharePoint Online<br />
+    Deployed via Power Platform CLI (<code>pac code push</code>)
+  </p>
+
+</div>
+</body>
+</html>
